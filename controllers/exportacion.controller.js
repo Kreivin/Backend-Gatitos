@@ -167,6 +167,69 @@ export const exportarGatosCSV = async (req, res) => {
   }
 };
 
+export const exportarGatosSQL = async (req, res) => {
+  try {
+    const snapshot = await db.collection("gatos").orderBy("fecha", "desc").get();
+
+    const gatos = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const escaparSQL = (valor) => {
+      if (valor === null || valor === undefined) return "NULL";
+      if (typeof valor === "number") return valor;
+      // Escapar comillas simples
+      return `'${String(valor).replace(/'/g, "''")}'`;
+    };
+
+    let sql = `-- Script de inserción de gatos\n`;
+    sql += `-- Generado: ${new Date().toLocaleString("es-ES")}\n`;
+    sql += `-- Total registros: ${gatos.length}\n\n`;
+
+    sql += `CREATE TABLE IF NOT EXISTS gatos (\n`;
+    sql += `  id VARCHAR(50) PRIMARY KEY,\n`;
+    sql += `  nombre VARCHAR(100) NOT NULL,\n`;
+    sql += `  edad INT,\n`;
+    sql += `  peso DECIMAL(5,2),\n`;
+    sql += `  raza VARCHAR(80),\n`;
+    sql += `  imagen_url TEXT,\n`;
+    sql += `  fecha DATETIME\n`;
+    sql += `);\n\n`;
+
+    if (gatos.length === 0) {
+      sql += `-- No hay registros para insertar\n`;
+    } else {
+      gatos.forEach((g) => {
+        const fecha = g.fecha
+          ? new Date(g.fecha).toISOString().slice(0, 19).replace("T", " ")
+          : null;
+
+        sql += `INSERT INTO gatos (id, nombre, edad, peso, raza, imagen_url, fecha) VALUES (\n`;
+        sql += `  ${escaparSQL(g.id)},\n`;
+        sql += `  ${escaparSQL(g.nombre)},\n`;
+        sql += `  ${escaparSQL(g.edad)},\n`;
+        sql += `  ${escaparSQL(g.peso)},\n`;
+        sql += `  ${escaparSQL(g.raza)},\n`;
+        sql += `  ${escaparSQL(g.imagenUrl)},\n`;
+        sql += `  ${escaparSQL(fecha)}\n`;
+        sql += `);\n\n`;
+      });
+    }
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Content-Disposition", "inline; filename=\"gatos-insert.sql\"");
+    res.send(sql);
+  } catch (error) {
+    console.error("Error al exportar SQL:", error);
+    res.status(500).json({
+      mensaje: "Error al generar el script SQL.",
+      error: error.message,
+    });
+  }
+};
+
+
 export const exportarEstadisticasExcel = async ( req, res ) => {
   try
   {
