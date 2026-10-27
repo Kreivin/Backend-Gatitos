@@ -44,9 +44,6 @@ app.use( "/gatos", limiterGatos );
 app.use(estadisticasRoutes);
 import { exportarGatosCSV } from "./controllers/exportacion.controller.js";
 
-// ...
-
-router.get("/estadisticas/csv", exportarGatosCSV);
 
 
 // Rutas
