@@ -42,7 +42,7 @@ const limiterGatos = rateLimit( {
 app.use( "/gato", limiterGatos );
 app.use( "/gatos", limiterGatos );
 app.use(estadisticasRoutes);
-import { exportarGatosCSV } from "../controllers/export.controller.js";
+import { exportarGatosCSV } from "./controllers/exportacion.controller.js";
 
 // ...
 
