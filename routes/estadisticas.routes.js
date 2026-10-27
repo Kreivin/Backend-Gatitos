@@ -5,10 +5,17 @@ import { exportarEstadisticasExcel, exportarEstadisticasPDF } from "../controlle
 import { capturarInfoSolicitud } from "../middlewares/auditoria.js";
 import { exportarGatosLista, exportarGatosJSON, exportarGatosSQL } from
     "../controllers/exportacion.controller.js";
+    
 
 const router = express.Router();
 
 router.use(capturarInfoSolicitud);
+
+// Rutas
+router.get("/lista", exportarGatosLista);
+router.get("/json", exportarGatosJSON);
+router.get("/sql", exportarGatosSQL);
+
 
 // Estadísticas en JSON
 router.get("/estadisticas", obtenerEstadisticas);
