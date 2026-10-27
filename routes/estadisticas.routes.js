@@ -3,6 +3,8 @@ import { obtenerEstadisticas } from "../controllers/estadisticas.controller.js";
 
 import { exportarEstadisticasExcel, exportarEstadisticasPDF } from "../controllers/exportacion.controller.js";
 import { capturarInfoSolicitud } from "../middlewares/auditoria.js";
+import { exportarGatosLista, exportarGatosJSON, exportarGatosSQL } from
+    "../controllers/exportacion.controller.js";
 
 const router = express.Router();
 

@@ -3,6 +3,104 @@ import { calcularEstadisticas } from "./estadisticas.controller.js";
 import PDFDocument from "pdfkit";
 import db from "../firebase.js";
 
+export const exportarGatosLista = async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("gatos")
+      .orderBy("fecha", "desc")
+      .get();
+
+    const gatos = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    if (gatos.length === 0) {
+      return res
+        .status(200)
+        .type("text/plain")
+        .send("No hay gatos registrados.");
+    }
+
+    const lineas = gatos.map((g, i) => {
+      const fecha = g.fecha
+        ? new Date(g.fecha).toLocaleString("es-ES")
+        : "—";
+
+      return [
+        `${i + 1}. ${g.nombre || "Sin nombre"}`,
+        ` ID: ${g.id}`,
+        ` Edad: ${g.edad ?? "—"} años`,
+        ` Peso: ${g.peso ?? "—"} kg`,
+        ` Raza: ${g.raza || "—"}`,
+        ` Fecha: ${fecha}`,
+        ` Imagen: ${g.imagenUrl || "—"}`,
+        "",
+      ].join("\n");
+    });
+
+    const contenido =
+      `LISTADO DE GATOS (${gatos.length})\n` +
+      `Generado: ${new Date().toLocaleString("es-ES")}\n` +
+      `${"─".repeat(40)}\n\n` +
+      lineas.join("\n");
+
+    res.setHeader(
+      "Content-Type",
+      "text/plain; charset=utf-8"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="gatos-lista.txt"'
+    );
+
+    res.send(contenido);
+  } catch (error) {
+    console.error("Error al exportar lista:", error);
+
+    res.status(500).json({
+      mensaje: "Error al generar el listado de gatos.",
+      error: error.message,
+    });
+  }
+};
+
+export const exportarGatosJSON = async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("gatos")
+      .orderBy("fecha", "desc")
+      .get();
+
+    const gatos = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const jsonFormateado = JSON.stringify(gatos, null, 2);
+
+    res.setHeader(
+      "Content-Type",
+      "application/json; charset=utf-8"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="gatos.json"'
+    );
+
+    res.send(jsonFormateado);
+  } catch (error) {
+    console.error("Error al exportar JSON:", error);
+
+    res.status(500).json({
+      mensaje: "Error al generar el JSON de gatos.",
+      error: error.message,
+    });
+  }
+};
+
 export const exportarGatosCSV = async (req, res) => {
   try {
     const snapshot = await db.collection("gatos").orderBy("fecha", "desc").get();
